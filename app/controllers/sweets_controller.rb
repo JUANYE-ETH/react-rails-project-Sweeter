@@ -3,8 +3,7 @@ class SweetsController < ApplicationController
 
   # GET /sweets
   def index
-    sweets = Sweet.all
-
+    sweets = Sweet.all.order("created_at DESC")
     render json: sweets, status: :ok
   end
 
@@ -22,16 +21,16 @@ class SweetsController < ApplicationController
 
   # PATCH/PUT /sweets/1
   def update
-    if @sweet.update(sweet_params)
-      render json: @sweet
-    else
-      render json: @sweet.errors, status: :unprocessable_entity
-    end
+   sweet = set_sweet
+   sweet.update!(sweet_params)
+   render json: sweet, status: :ok
   end
 
   # DELETE /sweets/1
   def destroy
+    sweet = set_sweet
     sweet.destroy
+    head :no_content
   end
 
   private
