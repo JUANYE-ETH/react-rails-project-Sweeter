@@ -5,6 +5,10 @@ class ApplicationController < ActionController::API
   rescue_from ActiveRecord::RecordInvalid, with: :invalid
   
   private
+
+  def current_user 
+    @current_user ||= User.find_by_id(session[:user_id])
+  end
   
   def render_not_found_response(error_obj)
     render json: {error: "#{error_obj.model} not found"}, status: :not_found

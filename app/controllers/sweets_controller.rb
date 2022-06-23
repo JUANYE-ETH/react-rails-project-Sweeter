@@ -1,46 +1,69 @@
 class SweetsController < ApplicationController
-  before_action :set_sweet, only: [:show, :update, :destroy]
+    before_action :set_sweet, only: [:show, :update, :destroy]
+    before_action :is_authorized, only: [:update, :destroy]
+  
 
   # GET /sweets
   def index
-    sweets = Sweet.all.order("created_at DESC")
-    render json: sweets, status: :ok
+    sweets = Sweet.all
+    render json: sweets
   end
 
   # GET /sweets/1
+  # get "/sweets/:id", to: "sweets#show"
   def show
-    sweet = set_sweet
-    render json: sweet, status: :ok
+    render json: @sweet
   end
 
   # POST /sweets
   def create
-    sweet = Sweet.create!(sweet_params)
-    render json: sweet, status: :created
+    sweet = current_user.sweets.create(sweet_params)
+    
+    if sweet.id
+      render json: sweet, include:['category'], status: :created
+    else
+      render json:{error: sweet.errors.full_messages.to_sentence}, status: :unprocessable_entity
+    end
   end
 
-  # PATCH/PUT /sweets/1
+  # # PATCH /sweets/1
   def update
-   sweet = set_sweet
-   sweet.update!(sweet_params)
-   render json: sweet, status: :ok
+      @sweet.update!(sweet_params)
+      render json: @sweet, status: :ok
   end
 
-  # DELETE /sweets/1
+  # # DELETE /sweets/1
   def destroy
-    sweet = set_sweet
-    sweet.destroy
+    @sweet.destroy
     head :no_content
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_sweet
-      @sweet = Sweet.find(params[:id])
+  #get 
+  def sweets_by_date
+    sweets = Sweet.order(created_at: :desc)
+    render json: sweets
+  end
+
+  #get
+#   def order
+#     sweets = Sweet.order()
+#     render json: sweets
+#   end
+
+  private   
+    #  Only allow a list of trusted parameters through.
+    def sweet_params
+      params.permit(:sweet, :category_id, :user_id)
     end
 
-    # Only allow a list of trusted parameters through.
-    def sweet_params
-      params.permit(:sweet)
+    #only for actions with id in their route
+    def set_sweet
+     @sweet = Sweet.find(params[:id])
     end
+  
+    def is_authorized
+      is_authorized = current_user.admin? || current_user.id == @sweet.user_id
+      render json: { error: "You are not authorized for this action" }, status: :forbidden unless is_authorized
+    end
+  
 end
