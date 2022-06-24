@@ -4,6 +4,8 @@ const Login = ({ setCurrentUser }) => {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 
+	const [error, setError] = useState([]);
+
 	function loginUser(e) {
 		e.preventDefault();
 		fetch("/login", {
@@ -18,10 +20,8 @@ const Login = ({ setCurrentUser }) => {
 					setCurrentUser(user);
 				});
 			} else {
-				res.json().then((errors) => {
-					console.log(errors);
-					alert("Invalid Username or Password");
-				});
+				res.json().then((json) => setError(json.error));
+				alert("Invalid Username or Password");
 			}
 		});
 		setUsername("");
@@ -54,6 +54,7 @@ const Login = ({ setCurrentUser }) => {
 				<br />
 				<button className="unauth-button">LOG IN</button>
 			</form>
+			{error ? <div>{error}</div> : null}
 		</div>
 	);
 };
